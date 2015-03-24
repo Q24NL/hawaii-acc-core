@@ -1,0 +1,9 @@
+/.classpath
+/.project
+/target/
+/.settings/
+/log/
+/test-output/
+/uploads/deviceList.json
+/true
+.springBeans
