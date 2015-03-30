@@ -2,8 +2,11 @@
 /.project
 /target/
 /.settings/
+/.idea/
 /log/
 /test-output/
 /uploads/deviceList.json
 /true
 .springBeans
+*.iml
+
