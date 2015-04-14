@@ -7,7 +7,12 @@
     <artifactId>hawaii-acc-core</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-
+    <inceptionYear>2015</inceptionYear>
+    <organization>
+        <name>Q24</name>
+        <url>http://www.24.nl</url>
+    </organization>
+    <name>Hawaii acceptance testing cucumber selenium mappings</name>
     <properties>
         <java.version>1.8</java.version>
         <cucumber.version>1.2.2</cucumber.version>
@@ -102,6 +107,9 @@
                 <configuration>
                     <licenseName>apache2_0</licenseName>
                     <licenseResolver>${project.baseUri}/src/license</licenseResolver>
+                    <processStartTag></processStartTag>
+                    <processEndTag>$</processEndTag>
+                    <sectionDelimiter>$</sectionDelimiter>
                 </configuration>
                 <executions>
                     <execution>
