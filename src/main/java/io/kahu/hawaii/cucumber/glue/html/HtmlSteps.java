@@ -59,10 +59,9 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.openqa.selenium.support.ui.ExpectedConditions.*;
-import static org.openqa.selenium.support.ui.ExpectedConditions.not;
-
 
 public class HtmlSteps {
+
     private static final String PROXY_HOST_KEY = "test.proxyHost";
     private static final String PROXY_PORT_KEY = "test.proxyPort";
     private final String browser;
@@ -88,7 +87,6 @@ public class HtmlSteps {
         this.embedScreenshot = properties.containsKey("test.embed.screenshot") ? Boolean.parseBoolean(System.getProperty("test.embed.screenshot")) : false;
     }
 
-
     public WebDriver getWebDriver() {
         return this.webDriver;
     }
@@ -100,7 +98,8 @@ public class HtmlSteps {
     /**
      * An expectation for checking the current url of a page.
      *
-     * @param url the expected url, which must be an exact match
+     * @param url
+     *            the expected url, which must be an exact match
      * @return true when the url matches, false otherwise
      * @see https://code.google.com/p/selenium/issues/detail?id=6842
      */
@@ -115,7 +114,8 @@ public class HtmlSteps {
      * An expectation for checking that the current url contains a
      * case-sensitive substring
      *
-     * @param url the fragment of url expected
+     * @param url
+     *            the fragment of url expected
      * @return true when the url matches, false otherwise
      * @see https://code.google.com/p/selenium/issues/detail?id=6842
      */
@@ -344,7 +344,6 @@ public class HtmlSteps {
             }
         }
     }
-
 
     @When("^I click on button \"([^\"]*)\"$")
     public void I_click_on_button(String id) throws Throwable {
@@ -846,7 +845,8 @@ public class HtmlSteps {
 
     @Then("^body should contain text \"([^\"]*)\"$")
     public void body_should_contain_text(String text) throws Throwable {
-        // assertThat(findVisibleElement(By.tagName("body")).getText().contains(text), is(equalTo(true)));
+        // assertThat(findVisibleElement(By.tagName("body")).getText().contains(text),
+        // is(equalTo(true)));
         try {
             WebElement element = webDriver.findElement(By.tagName("body"));
             waitUntil(textToBePresentInElement(element, text));
@@ -898,11 +898,14 @@ public class HtmlSteps {
     }
 
     /**
-     * Find the first {@link org.openqa.selenium.WebElement} using the given method.
+     * Find the first {@link org.openqa.selenium.WebElement} using the given
+     * method.
      *
-     * @param by The locating mechanism
+     * @param by
+     *            The locating mechanism
      * @return The first matching element on the current page
-     * @throws org.openqa.selenium.NoSuchElementException If no matching elements are found
+     * @throws org.openqa.selenium.NoSuchElementException
+     *             If no matching elements are found
      * @see org.openqa.selenium.WebDriver#findElement(org.openqa.selenium.By)
      */
     public WebElement findElement(By by) {
@@ -910,11 +913,14 @@ public class HtmlSteps {
     }
 
     /**
-     * Find the first {@link org.openqa.selenium.WebElement} using the given method.
+     * Find the first {@link org.openqa.selenium.WebElement} using the given
+     * method.
      *
-     * @param by The locating mechanism
+     * @param by
+     *            The locating mechanism
      * @return The first matching element on the current page
-     * @throws org.openqa.selenium.NoSuchElementException If no matching elements are found
+     * @throws org.openqa.selenium.NoSuchElementException
+     *             If no matching elements are found
      * @see org.openqa.selenium.WebDriver#findElement(org.openqa.selenium.By)
      */
     public WebElement findVisibleElement(By by) {
@@ -923,12 +929,11 @@ public class HtmlSteps {
     }
 
     public WebElement findVisibleAndClickableElement(By by) {
-        //waitUntil(elementToBeClickable(by));
+        // waitUntil(elementToBeClickable(by));
         waitUntil(visibilityOfElementLocated(by));
-        //waitUntil(elementToBeClickable(by));
+        // waitUntil(elementToBeClickable(by));
         return findElement(by);
     }
-
 
     public WebElement findVisibleElementById(String id) {
         return findVisibleElement(By.id(id));
@@ -937,20 +942,25 @@ public class HtmlSteps {
     /**
      * Find the first {@link org.openqa.selenium.WebElement} for the given id.
      *
-     * @param id The value of the "id" attribute to search for
+     * @param id
+     *            The value of the "id" attribute to search for
      * @return The first matching element on the current page
-     * @throws AssertionError If no matching elements are found
+     * @throws AssertionError
+     *             If no matching elements are found
      * @see org.openqa.selenium.WebDriver#findElement(org.openqa.selenium.By)
      * @see org.openqa.selenium.By.ById
      */
     public WebElement findElementById(String id) {
         try {
-            //waitUntil(presenceOfElementLocated(By.id(id)));
+            // waitUntil(presenceOfElementLocated(By.id(id)));
             WebElement element = webDriver.findElement(By.id(id));
 
-            // Scroll to the element, this due to some dirty radiobutton tricks. And force it a bit more to to center
-            // And yes, do this for all elements. ( This is a known ChromeDriver V2.12 bug, if the element is not in the
-            // visible area then you 'can' have some troubles. ). Works for all elements too ;-)
+            // Scroll to the element, this due to some dirty radiobutton tricks.
+            // And force it a bit more to to center
+            // And yes, do this for all elements. ( This is a known ChromeDriver
+            // V2.12 bug, if the element is not in the
+            // visible area then you 'can' have some troubles. ). Works for all
+            // elements too ;-)
             scrollToElement(element);
 
             return element;
@@ -960,9 +970,11 @@ public class HtmlSteps {
     }
 
     /**
-     * Scroll to the element, this due to some dirty radiobutton tricks. And force it a bit more to to center
-     * // And yes, do this for all elements. ( This is a known ChromeDriver V2.12 bug, if the element is not in the
-     * // visible area then you 'can' have some troubles. ). Works for all elements too ;-)
+     * Scroll to the element, this due to some dirty radiobutton tricks. And
+     * force it a bit more to to center // And yes, do this for all elements. (
+     * This is a known ChromeDriver V2.12 bug, if the element is not in the //
+     * visible area then you 'can' have some troubles. ). Works for all elements
+     * too ;-)
      *
      * @param element
      */
@@ -978,8 +990,8 @@ public class HtmlSteps {
     }
 
     /**
-     * Scroll to classname. This is a known ChromeDriver V2.12 bug, if the element is not in the
-     * // visible area then you 'can' have some troubles.
+     * Scroll to classname. This is a known ChromeDriver V2.12 bug, if the
+     * element is not in the // visible area then you 'can' have some troubles.
      */
     public void scrollToClass(String classname) {
         WebElement element = findElement(By.className(classname));
@@ -987,8 +999,8 @@ public class HtmlSteps {
     }
 
     /**
-     * Scroll to id. This is a known ChromeDriver V2.12 bug, if the element is not in the
-     * // visible area then you 'can' have some troubles.
+     * Scroll to id. This is a known ChromeDriver V2.12 bug, if the element is
+     * not in the // visible area then you 'can' have some troubles.
      */
     public void scrollToID(String id) {
         WebElement element = findElementById(id);
@@ -1006,11 +1018,15 @@ public class HtmlSteps {
      * <li>the current thread is interrupted</li>
      * </ol>
      *
-     * @param isTrue the parameter to pass to the {@link org.openqa.selenium.support.ui.ExpectedCondition}
-     * @param <V>    The function's expected return type.
+     * @param isTrue
+     *            the parameter to pass to the
+     *            {@link org.openqa.selenium.support.ui.ExpectedCondition}
+     * @param <V>
+     *            The function's expected return type.
      * @return The functions' return value if the function returned something
-     * different from null or false before the timeout expired.
-     * @throws org.openqa.selenium.TimeoutException If the timeout expires.
+     *         different from null or false before the timeout expired.
+     * @throws org.openqa.selenium.TimeoutException
+     *             If the timeout expires.
      */
     public <V> V waitUntil(Function<? super WebDriver, V> isTrue) {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
@@ -1021,8 +1037,10 @@ public class HtmlSteps {
      * Repeatedly applies this instance's input value to the given predicate
      * until the timeout expires or the predicate evaluates to true.
      *
-     * @param isTrue The predicate to wait on.
-     * @throws org.openqa.selenium.TimeoutException If the timeout expires.
+     * @param isTrue
+     *            The predicate to wait on.
+     * @throws org.openqa.selenium.TimeoutException
+     *             If the timeout expires.
      */
     public void waitUntil(Predicate<WebDriver> isTrue) {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
