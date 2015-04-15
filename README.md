@@ -1,2 +1,1 @@
-# hawaii-acc-core
-Hawaii Acceptance Testing Core
+# Hawaii Acceptance Testing Core
