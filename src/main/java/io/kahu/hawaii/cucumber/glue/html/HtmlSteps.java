@@ -84,7 +84,7 @@ public class HtmlSteps {
         this.timeout = properties.containsKey("test.timeout") ? Integer.parseInt(System.getProperty("test.timeout")) : 10;
         this.acceptCookies = properties.containsKey("test.disable.accept.cookies") ? !Boolean.parseBoolean(System.getProperty("test.disable.accept.cookies"))
                 : true;
-        this.embedScreenshot = properties.containsKey("test.embed.screenshot") ? Boolean.parseBoolean(System.getProperty("test.embed.screenshot")) : false;
+        this.embedScreenshot = properties.containsKey("test.embed.screenshot") ? Boolean.parseBoolean(System.getProperty("test.embed.screenshot")) : true;
     }
 
     public WebDriver getWebDriver() {
