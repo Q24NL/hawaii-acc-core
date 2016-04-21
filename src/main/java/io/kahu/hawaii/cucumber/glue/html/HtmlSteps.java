@@ -264,6 +264,7 @@ public class HtmlSteps {
     @When("^I check checkbox \"([^\"]*)\"$")
     /**
      * Checkboxes are not visible themselves because of the CSS used. Instead, we click on the label belonging to them with the label'for'
+     * Note: because of this approach this method is tight to the implementation I will not just click on checkbox; don't like it; needs refactoring.
      * @param id, the 'label for' identifier
      * @throws Throwable
      */
