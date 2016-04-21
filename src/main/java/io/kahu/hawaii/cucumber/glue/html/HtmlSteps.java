@@ -69,6 +69,7 @@ public class HtmlSteps {
     private final String baseUrl;
     private final String relativeUrl;
     private final int timeout;
+
     private final String seleniumHub;
     private final boolean embedScreenshot;
     private EventFiringWebDriver webDriver;
@@ -267,21 +268,33 @@ public class HtmlSteps {
      * @throws Throwable
      */
     public void I_check_checkbox(String id) throws Throwable {
-        List<WebElement> elements = webDriver.findElements(By.cssSelector("label[for=\" + id + \"]"));
+        List<WebElement> elements = webDriver.findElements(By.cssSelector("label[for='" + id + "']"));
         WebElement element = null;
         if (elements != null) {
             if (elements.size() > 1) {
-                element = findVisibleElement(By.cssSelector("label[for=" + id + "]:first-child"));
+                element = findVisibleElement(By.cssSelector("label[for='" + id + "']:first-child"));
             } else {
-                element = findVisibleElement(By.cssSelector("label[for=" + id + "]"));
+                element = findVisibleElement(By.cssSelector("label[for='" + id + "']"));
             }
-
         } else {
-            fail("Checkbox element label[for=\"" + id + "\"] not found");
+            fail("Checkbox element label[for='" + id + "'] not found");
         }
         scrollToElement(element);
         element.click();
 
+        // While fixing SUPDEV-1903 I refactored above code.
+        // However above code worked as after fixing the issues with the quotes.
+        // I keep code below just for reference if we look into this in the future.
+
+//        WebElement element = findElement(By.id(id));
+//        // find label
+//        if (element != null) {
+//            WebElement labelElement = element.findElement(By.xpath(".//ancestor::label[@for='" + id + "']"));
+//            scrollToElement(labelElement);
+//            labelElement.click();
+//        } else {
+//            fail("Checkbox element \"" + id + "\" not found");
+//        }
     }
 
     @When("^I select \"([^\"]*)\" from drop-down list \"([^\"]*)\"$")
