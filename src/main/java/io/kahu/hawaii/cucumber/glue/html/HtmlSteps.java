@@ -33,6 +33,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
@@ -136,6 +137,13 @@ public class HtmlSteps {
                 driver = createRemoteWebDriverForCapabilities(capabilities);
             } else {
                 driver = new ChromeDriver();
+            }
+        } else if (StringUtils.containsIgnoreCase(browser, "opera")) {
+            if (remote) {
+                DesiredCapabilities capabilities = DesiredCapabilities.operaBlink();
+                driver = createRemoteWebDriverForCapabilities(capabilities);
+            } else {
+                driver = new OperaDriver();
             }
         } else if (StringUtils.containsIgnoreCase(browser, "firefox")) {
             if (remote) {

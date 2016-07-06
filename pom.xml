@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.kahu</groupId>
     <artifactId>hawaii-acc-core</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
     <inceptionYear>2015</inceptionYear>
     <organization>
@@ -37,7 +37,7 @@
         <encoding>UTF-8</encoding>
         <hamcrest.version>1.3</hamcrest.version>
         <maven.compile.encoding>UTF-8</maven.compile.encoding>
-        <selenium.version>2.45.0</selenium.version>
+        <selenium.version>2.53.1</selenium.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
