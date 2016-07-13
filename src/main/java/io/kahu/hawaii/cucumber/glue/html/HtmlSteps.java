@@ -238,6 +238,17 @@ public class HtmlSteps {
         WebDriverWait wait = new WebDriverWait(webDriver, 30);
         wait.until(pageLoadCondition);
     }
+    
+    public void waitForJQueryToFinish() {
+        ExpectedCondition<Boolean> ajaxCondition = driver -> ((JavascriptExecutor) driver).executeScript("return jQuery.active").toString().equals("0");
+        WebDriverWait wait = new WebDriverWait(webDriver, 30);
+        wait.until(ajaxCondition);
+    }
+    
+    @When("^I wait for jQuery to finish$")
+    public void I_wait_for_JQuery_to_finish() throws Throwable {
+    	waitForJQueryToFinish();
+    }
 
     @When("^I accept cookies$")
     public void I_accept_cookies() throws Throwable {
