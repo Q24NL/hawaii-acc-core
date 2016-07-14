@@ -15,28 +15,44 @@
  */
 package io.kahu.hawaii.cucumber.glue.html;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.mdimension.jchronic.Chronic;
-import com.mdimension.jchronic.Options;
-import com.mdimension.jchronic.utils.Span;
-import cucumber.api.DataTable;
-import cucumber.api.Scenario;
-import cucumber.api.Transform;
-import cucumber.api.Transformer;
-import cucumber.api.java.After;
-import cucumber.api.java.Before;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated;
+import static org.openqa.selenium.support.ui.ExpectedConditions.not;
+import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElement;
+import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementLocated;
+import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementValue;
+import static org.openqa.selenium.support.ui.ExpectedConditions.titleContains;
+import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
+import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
+
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
-import org.openqa.selenium.*;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.Proxy;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.openqa.selenium.remote.CapabilityType;
@@ -48,18 +64,21 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.mdimension.jchronic.Chronic;
+import com.mdimension.jchronic.Options;
+import com.mdimension.jchronic.utils.Span;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.openqa.selenium.support.ui.ExpectedConditions.*;
+import cucumber.api.DataTable;
+import cucumber.api.Scenario;
+import cucumber.api.Transform;
+import cucumber.api.Transformer;
+import cucumber.api.java.After;
+import cucumber.api.java.Before;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 
 public class HtmlSteps {
 
@@ -240,9 +259,14 @@ public class HtmlSteps {
     }
     
     public void waitForJQueryToFinish() {
-        ExpectedCondition<Boolean> ajaxCondition = driver -> ((JavascriptExecutor) driver).executeScript("return jQuery.active").toString().equals("0");
-        WebDriverWait wait = new WebDriverWait(webDriver, 30);
-        wait.until(ajaxCondition);
+    	try {
+	        ExpectedCondition<Boolean> ajaxCondition = driver -> ((JavascriptExecutor) driver).executeScript("return jQuery.active").toString().equals("0");
+	        WebDriverWait wait = new WebDriverWait(webDriver, 30);
+	        wait.until(ajaxCondition);
+    	}
+    	catch (TimeoutException e) {
+    		// this is a timeout (obviously) but since we were supposed to wait anyway, swallow the exception
+    	}
     }
     
     @When("^I wait for jQuery to finish$")
