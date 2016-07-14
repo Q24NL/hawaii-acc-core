@@ -22,7 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.kahu</groupId>
     <artifactId>hawaii-acc-core</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
     <inceptionYear>2015</inceptionYear>
     <organization>
