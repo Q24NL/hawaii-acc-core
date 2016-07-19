@@ -260,7 +260,7 @@ public class HtmlSteps {
     
     public void waitForJQueryToFinish() {
     	try {
-	        ExpectedCondition<Boolean> ajaxCondition = driver -> ((JavascriptExecutor) driver).executeScript("return jQuery.active").toString().equals("0");
+	        ExpectedCondition<Boolean> ajaxCondition = driver -> (Boolean)((JavascriptExecutor) driver).executeScript("return window.jQuery != undefined && jQuery.active === 0");
 	        WebDriverWait wait = new WebDriverWait(webDriver, 30);
 	        wait.until(ajaxCondition);
     	}
