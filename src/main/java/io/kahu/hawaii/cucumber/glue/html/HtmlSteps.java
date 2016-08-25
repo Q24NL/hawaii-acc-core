@@ -273,6 +273,22 @@ public class HtmlSteps {
     public void I_wait_for_JQuery_to_finish() throws Throwable {
     	waitForJQueryToFinish();
     }
+    
+    public void waitForAngularJSToFinish() {
+    	try {
+	        ExpectedCondition<Boolean> ajaxCondition = driver -> (Boolean)((JavascriptExecutor) driver).executeScript("return window.angular != undefined && angular.element(document.body).injector().get('$http').pendingRequests.length === 0");
+	        WebDriverWait wait = new WebDriverWait(webDriver, 30);
+	        wait.until(ajaxCondition);
+    	}
+    	catch (TimeoutException e) {
+    		// this is a timeout (obviously) but since we were supposed to wait anyway, swallow the exception
+    	}
+    }
+    
+    @When("^I wait for AngularJS to finish$")
+    public void I_wait_for_AngularJS_to_finish() throws Throwable {
+    	waitForAngularJSToFinish();
+    }
 
     @When("^I accept cookies$")
     public void I_accept_cookies() throws Throwable {
