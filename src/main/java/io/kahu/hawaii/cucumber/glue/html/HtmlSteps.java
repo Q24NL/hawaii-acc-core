@@ -341,8 +341,7 @@ public class HtmlSteps {
             fail("Checkbox element label[for='" + id + "'] not found");
         }
         scrollToElement(element);
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
 
         // While fixing SUPDEV-1903 I refactored above code.
         // However above code worked as after fixing the issues with the quotes.
@@ -365,8 +364,7 @@ public class HtmlSteps {
         List<WebElement> options = element.findElements(By.tagName("option"));
         for (WebElement option : options) {
             if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                Actions actions = new Actions(webDriver);
-                actions.moveToElement(option).click().perform();
+                moveTo(option).click().perform();
                 break;
             }
         }
@@ -385,12 +383,11 @@ public class HtmlSteps {
             WebElement element = findVisibleElementById(id);
             String tagName = element.getTagName();
             String type = element.getAttribute("type");
-            Actions actions = new Actions(webDriver);
             if ("input".equalsIgnoreCase(tagName)) {
                 if ("checkbox".equalsIgnoreCase(type)) {
-                    actions.moveToElement(element).click().perform();
+                    moveTo(element).click().perform();
                 } else if ("radio".equalsIgnoreCase(type)) {
-                    actions.moveToElement(element).click().perform();
+                    moveTo(element).click().perform();
                 } else {
                     if (value != null) {
                         if (value.startsWith("date:")) {
@@ -410,12 +407,12 @@ public class HtmlSteps {
                 List<WebElement> options = element.findElements(By.tagName("option"));
                 for (WebElement option : options) {
                     if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                        actions.moveToElement(option).click().perform();
+                        moveTo(option).click().perform();
                         break;
                     }
                 }
             } else if ("label".equalsIgnoreCase(tagName)) {
-                actions.moveToElement(element).click().perform();
+                moveTo(element).click().perform();
             } else {
                 element.sendKeys(value);
             }
@@ -425,57 +422,49 @@ public class HtmlSteps {
     @When("^I click on button \"([^\"]*)\"$")
     public void I_click_on_button(String id) throws Throwable {
         WebElement element = findVisibleAndClickableElement(By.id(id));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on button with text \"([^\"]*)\"$")
     public void I_click_on_button_with_text(String text) throws Throwable {
         WebElement element = findVisibleElement(By.xpath("//button[text()='" + text + "']"));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on button with text containing \"([^\"]*)\"$")
     public void I_click_on_button_with_text_containing(String text) throws Throwable {
         WebElement element = findVisibleElement(By.xpath("//button[contains(text(), '" + text + "')]"));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on element \"([^\"]*)\"$")
     public void I_click_on_element(String id) throws Throwable {
         WebElement element = findVisibleElementById(id);
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on element with id \"([^\"]*)\"$")
     public void I_click_on_element_with_id(String id) throws Throwable {
         WebElement element = findVisibleElementById(id);
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on link \"([^\"]*)\"$")
     public void I_click_on_link(String id) throws Throwable {
         WebElement element = findVisibleElement(By.cssSelector("a#" + id));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on link with text \"([^\"]*)\"$")
     public void I_click_on_link_with_text(String linkText) throws Throwable {
         WebElement element = findVisibleElement(By.linkText(linkText));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I click on link with text containing \"([^\"]*)\"$")
     public void I_click_on_link_with_text_containing(String linkText) throws Throwable {
         WebElement element = findVisibleElement(By.partialLinkText(linkText));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @When("^I wait (\\d+) seconds?$")
@@ -506,8 +495,7 @@ public class HtmlSteps {
     @When("^I click on input with value \"([^\"]*)\"$")
     public void I_click_on_input_with_value(String text) throws Throwable {
         WebElement element = findElement(By.xpath("//input[contains(@value,'" + text + "')]"));
-        Actions actions = new Actions(webDriver);
-        actions.moveToElement(element).click().perform();
+        moveTo(element).click().perform();
     }
 
     @Then("^current url should be \"([^\"]*)\"$")
@@ -1176,8 +1164,7 @@ public class HtmlSteps {
                 wait.until(ExpectedConditions.elementToBeClickable(By.className("cookie-yes")));
                 turnOffImplicitWaits();
                 WebElement element = findElement(By.className("cookie-yes"));
-                Actions actions = new Actions(webDriver);
-                actions.moveToElement(element).click().perform();
+                moveTo(element).click().perform();
                 Object lock = new Object();
                 synchronized (lock) {
                     try {
@@ -1219,4 +1206,10 @@ public class HtmlSteps {
             return span.getEndCalendar();
         }
     }
+    
+    public Actions moveTo(WebElement element) {
+        Actions actions = new Actions(webDriver);
+        return actions.moveToElement(element);
+    }
+    
 }
