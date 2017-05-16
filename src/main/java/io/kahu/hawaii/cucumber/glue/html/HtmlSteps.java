@@ -165,6 +165,14 @@ public class HtmlSteps {
             } else {
                 driver = new OperaDriver();
             }
+        } else if (StringUtils.containsIgnoreCase(browser, "marionette")) {
+            if (remote) {
+                DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+                capabilities.setCapability("marionette", true);
+                driver = createRemoteWebDriverForCapabilities(capabilities);
+            } else {
+                driver = new FirefoxDriver();
+            }
         } else if (StringUtils.containsIgnoreCase(browser, "firefox")) {
             if (remote) {
                 DesiredCapabilities capabilities = DesiredCapabilities.firefox();
@@ -1114,20 +1122,6 @@ public class HtmlSteps {
     public <V> V waitUntil(Function<? super WebDriver, V> isTrue) {
         WebDriverWait wait = new WebDriverWait(webDriver, timeout);
         return wait.until(isTrue);
-    }
-
-    /**
-     * Repeatedly applies this instance's input value to the given predicate
-     * until the timeout expires or the predicate evaluates to true.
-     *
-     * @param isTrue
-     *            The predicate to wait on.
-     * @throws org.openqa.selenium.TimeoutException
-     *             If the timeout expires.
-     */
-    public void waitUntil(Predicate<WebDriver> isTrue) {
-        WebDriverWait wait = new WebDriverWait(webDriver, timeout);
-        wait.until(isTrue);
     }
 
     /**
