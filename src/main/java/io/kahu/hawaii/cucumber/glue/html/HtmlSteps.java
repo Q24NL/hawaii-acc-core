@@ -15,6 +15,7 @@
  */
 package io.kahu.hawaii.cucumber.glue.html;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -63,6 +64,7 @@ import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -165,9 +167,18 @@ public class HtmlSteps {
             } else {
                 driver = new OperaDriver();
             }
+        } else if (StringUtils.containsIgnoreCase(browser, "marionette")) {
+            if (remote) {
+                DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+                capabilities.setCapability("marionette", true);
+                driver = createRemoteWebDriverForCapabilities(capabilities);
+            } else {
+                driver = new FirefoxDriver();
+            }
         } else if (StringUtils.containsIgnoreCase(browser, "firefox")) {
             if (remote) {
                 DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+                capabilities.setCapability("marionette", false);
                 driver = createRemoteWebDriverForCapabilities(capabilities);
             } else {
                 driver = new FirefoxDriver();
@@ -1126,8 +1137,18 @@ public class HtmlSteps {
      *             If the timeout expires.
      */
     public void waitUntil(Predicate<WebDriver> isTrue) {
-        WebDriverWait wait = new WebDriverWait(webDriver, timeout);
-        wait.until(isTrue);
+        waitUntil(
+            new Function<WebDriver, Boolean>() {
+                @Override
+                public Boolean apply(WebDriver input) {
+                    return isTrue.test(input);
+                }
+                @Override
+                public String toString() {
+                    return isTrue.toString();
+                }
+            }
+        );
     }
 
     /**
@@ -1186,11 +1207,11 @@ public class HtmlSteps {
     }
 
     private void turnOnImplicitWaits() {
-        webDriver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);
+        webDriver.manage().timeouts().implicitlyWait(timeout, SECONDS);
     }
 
     private void turnOffImplicitWaits() {
-        webDriver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+        webDriver.manage().timeouts().implicitlyWait(0, SECONDS);
     }
 
     /**
