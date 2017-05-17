@@ -53,7 +53,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
@@ -64,7 +63,6 @@ import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -84,6 +82,8 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
 public class HtmlSteps {
+
+    private static final String MARIONETTE = "marionette";
 
     private static final String PROXY_HOST_KEY = "test.proxyHost";
     private static final String PROXY_PORT_KEY = "test.proxyPort";
@@ -1230,6 +1230,7 @@ public class HtmlSteps {
     
     public Actions moveTo(WebElement element) {
         Actions actions = new Actions(webDriver);
+        actions.setMarionette(StringUtils.containsIgnoreCase(browser, MARIONETTE));
         return actions.moveToElement(element);
     }
     
