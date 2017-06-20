@@ -75,7 +75,7 @@
             <version>${cucumber.version}</version>
         </dependency>
         <!-- selenium is used to run browser tests -->
-        <dependency>
+<!--        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>${selenium.version}</version>
@@ -85,7 +85,7 @@
             <artifactId>selenium-server</artifactId>
             <version>${selenium.version}</version>
         </dependency>
-        <dependency>
+-->        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-firefox-driver</artifactId>
             <version>${selenium.version}</version>
