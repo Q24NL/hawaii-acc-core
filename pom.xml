@@ -75,15 +75,15 @@
             <version>${cucumber.version}</version>
         </dependency>
         <!-- selenium is used to run browser tests -->
- <!--       <dependency>
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>3.4.0.debug-SNAPSHOT</version>
+            <version>${selenium.version}</version>
         </dependency>
-  -->      <dependency>
+        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-server</artifactId>
-            <version>3.4.0.debug-SNAPSHOT</version>
+            <version>${selenium.version}</version>
         </dependency>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
