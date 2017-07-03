@@ -15,6 +15,7 @@
  */
 package io.kahu.hawaii.cucumber.glue.html;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -36,7 +37,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
@@ -63,6 +63,8 @@ import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.ISelect;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -415,11 +417,14 @@ public class HtmlSteps {
                     }
                 }
             } else if ("select".equalsIgnoreCase(tagName)) {
-                List<WebElement> options = element.findElements(By.tagName("option"));
-                for (WebElement option : options) {
-                    if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                        moveTo(option).click().perform();
-                        break;
+                ISelect select = new Select(element);
+                try {
+                    select.selectByVisibleText(value);
+                } catch (NoSuchElementException e) {
+                    try {
+                        select.selectByValue(value);
+                    } catch (NoSuchElementException e2) {
+                        fail(format("Select-value '%s' not found for element with id '%d'"));
                     }
                 }
             } else if ("label".equalsIgnoreCase(tagName)) {
