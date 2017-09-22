@@ -22,8 +22,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.not;
+import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElement;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementValue;
@@ -311,22 +313,22 @@ public class HtmlSteps {
 
     @When("^I fill \"([^\"]*)\" in field \"([^\"]*)\"$")
     public void I_fill_in_field(String value, String id) throws Throwable {
-        findElementById(id).sendKeys(value);
+        findVisibleElementById(id).sendKeys(value);
     }
 
     @When("^I clear field \"([^\"]*)\"$")
     public void I_clear_field(String id) throws Throwable {
-        findElementById(id).clear();
+        findVisibleElementById(id).clear();
     }
 
     @When("^I fill date (.*) in field \"([^\"]*)\"$")
     public void I_fill_date_in_field(@Transform(ChronicConverter.class) Calendar cal, String id) throws Throwable {
-        findElementById(id).sendKeys(formatDate(cal));
+        findVisibleElementById(id).sendKeys(formatDate(cal));
     }
 
     @When("^I fill time (.*) in field \"([^\"]*)\"$")
     public void I_fill_time_in_field(@Transform(ChronicConverter.class) Calendar cal, String id) throws Throwable {
-        findElementById(id).sendKeys(formatTime(cal));
+        findVisibleElementById(id).sendKeys(formatTime(cal));
     }
 
     @When("^I choose radio button \"([^\"]*)\"$")
@@ -373,14 +375,8 @@ public class HtmlSteps {
 
     @When("^I select \"([^\"]*)\" from drop-down list \"([^\"]*)\"$")
     public void I_select_from_drop_down_list(String value, String id) throws Throwable {
-        WebElement element = findElementById(id);
-        List<WebElement> options = element.findElements(By.tagName("option"));
-        for (WebElement option : options) {
-            if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                moveTo(option).click().perform();
-                break;
-            }
-        }
+        WebElement element = findVisibleAndClickableElementById(id);
+        selectItemInDropdown(element, value);
     }
 
     @When("^I fill in the form?$")
@@ -393,7 +389,7 @@ public class HtmlSteps {
         for (List<String> row : data.raw()) {
             String id = row.get(0);
             String value = row.get(1);
-            WebElement element = findVisibleElementById(id);
+            WebElement element = findVisibleAndClickableElementById(id);
             String tagName = element.getTagName();
             String type = element.getAttribute("type");
             if ("input".equalsIgnoreCase(tagName)) {
@@ -417,16 +413,7 @@ public class HtmlSteps {
                     }
                 }
             } else if ("select".equalsIgnoreCase(tagName)) {
-                ISelect select = new Select(element);
-                try {
-                    select.selectByVisibleText(value);
-                } catch (NoSuchElementException e) {
-                    try {
-                        select.selectByValue(value);
-                    } catch (NoSuchElementException e2) {
-                        fail(format("Select-value '%s' not found for element with id '%d'"));
-                    }
-                }
+                selectItemInDropdown(element, value);
             } else if ("label".equalsIgnoreCase(tagName)) {
                 moveTo(element).click().perform();
             } else {
@@ -437,49 +424,49 @@ public class HtmlSteps {
 
     @When("^I click on button \"([^\"]*)\"$")
     public void I_click_on_button(String id) throws Throwable {
-        WebElement element = findVisibleAndClickableElement(By.id(id));
+        WebElement element = findVisibleAndClickableElementById(id);
         moveTo(element).click().perform();
     }
 
     @When("^I click on button with text \"([^\"]*)\"$")
     public void I_click_on_button_with_text(String text) throws Throwable {
-        WebElement element = findVisibleElement(By.xpath("//button[text()='" + text + "']"));
+        WebElement element = findVisibleAndClickableElement(By.xpath("//button[text()='" + text + "']"));
         moveTo(element).click().perform();
     }
 
     @When("^I click on button with text containing \"([^\"]*)\"$")
     public void I_click_on_button_with_text_containing(String text) throws Throwable {
-        WebElement element = findVisibleElement(By.xpath("//button[contains(text(), '" + text + "')]"));
+        WebElement element = findVisibleAndClickableElement(By.xpath("//button[contains(text(), '" + text + "')]"));
         moveTo(element).click().perform();
     }
 
     @When("^I click on element \"([^\"]*)\"$")
     public void I_click_on_element(String id) throws Throwable {
-        WebElement element = findVisibleElementById(id);
+        WebElement element = findVisibleAndClickableElementById(id);
         moveTo(element).click().perform();
     }
 
     @When("^I click on element with id \"([^\"]*)\"$")
     public void I_click_on_element_with_id(String id) throws Throwable {
-        WebElement element = findVisibleElementById(id);
+        WebElement element = findVisibleAndClickableElementById(id);
         moveTo(element).click().perform();
     }
 
     @When("^I click on link \"([^\"]*)\"$")
     public void I_click_on_link(String id) throws Throwable {
-        WebElement element = findVisibleElement(By.cssSelector("a#" + id));
+        WebElement element = findVisibleAndClickableElement(By.cssSelector("a#" + id));
         moveTo(element).click().perform();
     }
 
     @When("^I click on link with text \"([^\"]*)\"$")
     public void I_click_on_link_with_text(String linkText) throws Throwable {
-        WebElement element = findVisibleElement(By.linkText(linkText));
+        WebElement element = findVisibleAndClickableElement(By.linkText(linkText));
         moveTo(element).click().perform();
     }
 
     @When("^I click on link with text containing \"([^\"]*)\"$")
     public void I_click_on_link_with_text_containing(String linkText) throws Throwable {
-        WebElement element = findVisibleElement(By.partialLinkText(linkText));
+        WebElement element = findVisibleAndClickableElement(By.partialLinkText(linkText));
         moveTo(element).click().perform();
     }
 
@@ -510,7 +497,7 @@ public class HtmlSteps {
 
     @When("^I click on input with value \"([^\"]*)\"$")
     public void I_click_on_input_with_value(String text) throws Throwable {
-        WebElement element = findElement(By.xpath("//input[contains(@value,'" + text + "')]"));
+        WebElement element = findVisibleAndClickableElement(By.xpath("//input[contains(@value,'" + text + "')]"));
         moveTo(element).click().perform();
     }
 
@@ -1027,10 +1014,14 @@ public class HtmlSteps {
         return findElement(by);
     }
 
+    public WebElement findVisibleAndClickableElementById(String id) {
+        return findVisibleAndClickableElement(By.id(id));
+    }
+
     public WebElement findVisibleAndClickableElement(By by) {
         // waitUntil(elementToBeClickable(by));
         waitUntil(visibilityOfElementLocated(by));
-        // waitUntil(elementToBeClickable(by));
+        waitUntil(elementToBeClickable(by));
         return findElement(by);
     }
 
@@ -1051,8 +1042,8 @@ public class HtmlSteps {
      */
     public WebElement findElementById(String id) {
         try {
-            // waitUntil(presenceOfElementLocated(By.id(id)));
-            WebElement element = webDriver.findElement(By.id(id));
+            waitUntil(presenceOfElementLocated(By.id(id)));
+            WebElement element = findElement(By.id(id));
 
             // Scroll to the element, this due to some dirty radiobutton tricks.
             // And force it a bit more to to center
@@ -1187,7 +1178,7 @@ public class HtmlSteps {
                 WebDriverWait wait = new WebDriverWait(webDriver, 2); // wait
                 // max 2
                 // seconds
-                wait.until(ExpectedConditions.elementToBeClickable(By.className("cookie-yes")));
+                wait.until(elementToBeClickable(By.className("cookie-yes")));
                 turnOffImplicitWaits();
                 WebElement element = findElement(By.className("cookie-yes"));
                 moveTo(element).click().perform();
@@ -1237,6 +1228,19 @@ public class HtmlSteps {
         Actions actions = new Actions(webDriver);
         actions.setMarionette(StringUtils.containsIgnoreCase(browser, MARIONETTE));
         return actions.moveToElement(element);
+    }
+
+    public void selectItemInDropdown(WebElement element, String value) {
+        ISelect select = new Select(element);
+        try {
+            select.selectByVisibleText(value);
+        } catch (NoSuchElementException e) {
+            try {
+                select.selectByValue(value);
+            } catch (NoSuchElementException e2) {
+                fail(format("Select-value '%s' not found for element with id '%d'"));
+            }
+        }
     }
     
 }
