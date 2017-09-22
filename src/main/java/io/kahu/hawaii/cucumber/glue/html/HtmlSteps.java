@@ -64,7 +64,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.ISelect;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -257,15 +256,35 @@ public class HtmlSteps {
 
     @When("^I visit page \"([^\"]*)\"$")
     public void I_visit_page(String path) throws Throwable {
-        webDriver.get(getUrl() + path);
-        waitForLoad();
+        visitPage(path, false);
     }
 
     @When("^I visit page \"([^\"]*)\" and accept cookies$")
     public void I_visit_page_and_accept_cookies(String path) throws Throwable {
+        visitPage(path, true);
+    }
+
+    @When("^I visit page \"([^\"]*)\" expecting to end up at \"([^\"]*)\"$")
+    public void I_visit_page(String path, String expectedPath) throws Throwable {
+        visitPage(path, false, expectedPath);
+    }
+
+    @When("^I visit page \"([^\"]*)\" and accept cookies expecting to end up at \"([^\"]*)\"$")
+    public void I_visit_page_and_accept_cookies(String path, String expectedPath) throws Throwable {
+        visitPage(path, true, expectedPath);
+    }
+
+    private void visitPage(String path, boolean acceptCookies) throws Throwable {
+        visitPage(path, acceptCookies, path);
+    }
+    private void visitPage(String path, boolean acceptCookies, String expectedPath) throws Throwable {
         webDriver.get(getUrl() + path);
-        acceptCookies();
+        if (acceptCookies) {
+            acceptCookies();
+        }
         waitForLoad();
+
+        current_url_should_be(getUrl() + expectedPath);
     }
 
     public void waitForLoad() {
