@@ -35,6 +35,8 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElem
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -87,6 +89,8 @@ import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+
+import javax.imageio.ImageIO;
 
 public class HtmlSteps {
 
@@ -245,16 +249,16 @@ public class HtmlSteps {
     }
 
     @After("@web")
-    public void afterScenario(Scenario scenario) {
+    public void afterScenario(Scenario scenario) throws IOException {
         if (scenario.isFailed() && embedScreenshot) {
             try {
-                BufferedImage image = Shutterbug.shootPage(webDriver, ScrollStrategy.BOTH_DIRECTIONS).getImage();
                 //byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
+                
+                BufferedImage image = Shutterbug.shootPage(webDriver, ScrollStrategy.BOTH_DIRECTIONS).getImage();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "png", baos);
+                byte[] screenshot = baos.toByteArray();
 
-                BufferedImage convertedImg = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-                convertedImg.getGraphics().drawImage(image, 0, 0, null);
-
-                byte[] screenshot = ((DataBufferByte) convertedImg.getData().getDataBuffer()).getData();
                 scenario.embed(screenshot, "image/png");
             } catch (WebDriverException somePlatformsDontSupportScreenshots) {
                 System.err.println(somePlatformsDontSupportScreenshots.getMessage());
