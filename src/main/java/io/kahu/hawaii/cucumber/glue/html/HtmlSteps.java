@@ -33,6 +33,8 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.titleContains;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -40,6 +42,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
 
+import com.assertthat.selenium_shutterbug.core.Shutterbug;
+import com.assertthat.selenium_shutterbug.utils.web.ScrollStrategy;
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
 import org.openqa.selenium.By;
@@ -244,7 +248,13 @@ public class HtmlSteps {
     public void afterScenario(Scenario scenario) {
         if (scenario.isFailed() && embedScreenshot) {
             try {
-                byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
+                BufferedImage image = Shutterbug.shootPage(webDriver, ScrollStrategy.BOTH_DIRECTIONS).getImage();
+                //byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
+
+                BufferedImage convertedImg = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+                convertedImg.getGraphics().drawImage(image, 0, 0, null);
+
+                byte[] screenshot = ((DataBufferByte) convertedImg.getData().getDataBuffer()).getData();
                 scenario.embed(screenshot, "image/png");
             } catch (WebDriverException somePlatformsDontSupportScreenshots) {
                 System.err.println(somePlatformsDontSupportScreenshots.getMessage());
