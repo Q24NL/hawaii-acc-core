@@ -253,10 +253,11 @@ public class HtmlSteps {
         if (scenario.isFailed() && embedScreenshot) {
             try {
                 //byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
-                
+
                 BufferedImage image = Shutterbug.shootPage(webDriver, ScrollStrategy.BOTH_DIRECTIONS).getImage();
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 ImageIO.write(image, "png", baos);
+                baos.flush();
                 byte[] screenshot = baos.toByteArray();
 
                 scenario.embed(screenshot, "image/png");
@@ -514,6 +515,19 @@ public class HtmlSteps {
                 } catch (InterruptedException e) {
                     // ignore
                 }
+            }
+        }
+    }
+
+    @When("^I wait some milliseconds$")
+    public void I_wait_some_milliseconds() throws Throwable {
+        int millis = 500;
+        Object lock = new Object();
+        synchronized (lock) {
+            try {
+                lock.wait(millis);
+            } catch (InterruptedException e) {
+                // ignore
             }
         }
     }
