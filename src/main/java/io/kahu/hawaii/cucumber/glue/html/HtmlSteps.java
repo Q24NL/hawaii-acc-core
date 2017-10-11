@@ -18,6 +18,7 @@ package io.kahu.hawaii.cucumber.glue.html;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -34,7 +35,6 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -51,7 +51,6 @@ import org.hamcrest.Matchers;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -141,7 +140,7 @@ public class HtmlSteps {
     public static ExpectedCondition<Boolean> currentUrlIs(final String url) {
         return driver -> {
             String currentUrl = driver.getCurrentUrl();
-            return currentUrl == null ? false : currentUrl.equals(url);
+            return currentUrl == null ? false : (currentUrl.equals(url) || currentUrl.equals(url + '/'));
         };
     }
 
@@ -521,7 +520,7 @@ public class HtmlSteps {
 
     @When("^I wait some milliseconds$")
     public void I_wait_some_milliseconds() throws Throwable {
-        int millis = 500;
+        int millis = 1500;
         Object lock = new Object();
         synchronized (lock) {
             try {
@@ -553,7 +552,7 @@ public class HtmlSteps {
         try {
             waitUntil(currentUrlIs(url));
         } catch (TimeoutException e) {
-            assertThat(webDriver.getCurrentUrl(), is(equalTo(url)));
+            assertThat(webDriver.getCurrentUrl(), is(either(equalTo(url)).or(equalTo(url + '/'))));
         }
     }
 

@@ -77,6 +77,8 @@ public class Actions extends org.openqa.selenium.interactions.Actions {
                 ((JavascriptExecutor) ((EventFiringWebDriver) driver).getWrappedDriver())
                         .executeScript("arguments[0].click();", element);
                 return;
+            } else {
+                throw new RuntimeException("no javascriptExecutor");
             }
         }
         throw new RuntimeException("unexpected driver found");
