@@ -43,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import com.assertthat.selenium_shutterbug.core.Shutterbug;
 import com.assertthat.selenium_shutterbug.utils.web.ScrollStrategy;
@@ -140,8 +141,13 @@ public class HtmlSteps {
     public static ExpectedCondition<Boolean> currentUrlIs(final String url) {
         return driver -> {
             String currentUrl = driver.getCurrentUrl();
-            return currentUrl == null ? false : (currentUrl.equals(url) || currentUrl.equals(url + '/'));
+            return currentUrl == null ? false : (removeQueryString(currentUrl).equals(url) || currentUrl.equals(url + '/'));
         };
+    }
+
+    private static String removeQueryString(String url) {
+        //remove all starting from the first ?
+        return url == null ?  url : url.replaceAll("^([^\\?]+)\\?.*$", "$1");
     }
 
     /**
@@ -298,7 +304,7 @@ public class HtmlSteps {
         }
         waitForLoad();
 
-        current_url_should_be(getUrl() + expectedPath);
+        current_path_should_be(expectedPath);
     }
 
     public void waitForLoad() {
@@ -552,7 +558,17 @@ public class HtmlSteps {
         try {
             waitUntil(currentUrlIs(url));
         } catch (TimeoutException e) {
-            assertThat(webDriver.getCurrentUrl(), is(either(equalTo(url)).or(equalTo(url + '/'))));
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(either(equalTo(url)).or(equalTo(url + '/'))));
+        }
+    }
+
+    @Then("^current path should be \"([^\"]*)\"$")
+    public void current_path_should_be(String path) throws Throwable {
+        String url = this.getUrl() + path;
+        try {
+            waitUntil(currentUrlIs(url));
+        } catch (TimeoutException e) {
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(either(equalTo(url)).or(equalTo(url + '/'))));
         }
     }
 
@@ -561,7 +577,7 @@ public class HtmlSteps {
         try {
             waitUntil(not(currentUrlIs(url)));
         } catch (TimeoutException e) {
-            assertThat(webDriver.getCurrentUrl(), is(Matchers.not(equalTo(url))));
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(Matchers.not(equalTo(url))));
         }
     }
 
