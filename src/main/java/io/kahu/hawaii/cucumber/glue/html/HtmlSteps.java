@@ -414,8 +414,16 @@ public class HtmlSteps {
 
     @When("^I select \"([^\"]*)\" from drop-down list \"([^\"]*)\"$")
     public void I_select_from_drop_down_list(String value, String id) throws Throwable {
+        I_select_from_drop_down_list(value, id, false);
+    }
+
+    public void I_select_from_drop_down_list(String value, String id, boolean byValue) throws Throwable {
         WebElement element = findVisibleAndClickableElementById(id);
-        selectItemInDropdown(element, value);
+        if (byValue) {
+            selectItemInDropdownByValue(element, value);
+        } else {
+            selectItemInDropdown(element, value);
+        }
     }
 
     @When("^I fill in the form?$")
@@ -1292,17 +1300,23 @@ public class HtmlSteps {
         return actions.moveToElement(element);
     }
 
+    public void selectItemInDropdownByValue(WebElement element, String value) {
+        ISelect select = new Select(element);
+        try {
+            select.selectByValue(value);
+        } catch (NoSuchElementException e) {
+            fail(format("Select-value '%s' not found for element with id '%d'"));
+        }
+    }
+
     public void selectItemInDropdown(WebElement element, String value) {
         ISelect select = new Select(element);
         try {
             select.selectByVisibleText(value);
         } catch (NoSuchElementException e) {
-            try {
-                select.selectByValue(value);
-            } catch (NoSuchElementException e2) {
-                fail(format("Select-value '%s' not found for element with id '%d'"));
-            }
+            //try by values
+            selectItemInDropdownByValue(element, value);
         }
     }
-    
+
 }
