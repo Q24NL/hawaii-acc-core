@@ -469,12 +469,6 @@ public class HtmlSteps {
         }
     }
 
-    @When("^I click on button \"([^\"]*)\"$")
-    public void I_click_on_button(String id) throws Throwable {
-        WebElement element = findVisibleAndClickableElementById(id);
-        moveTo(element).click().perform();
-    }
-
     @When("^I click on button with text \"([^\"]*)\"$")
     public void I_click_on_button_with_text(String text) throws Throwable {
         WebElement element = findVisibleAndClickableElement(By.xpath("//button[text()='" + text + "']"));
@@ -487,32 +481,21 @@ public class HtmlSteps {
         moveTo(element).click().perform();
     }
 
-    @When("^I click on element \"([^\"]*)\"$")
-    public void I_click_on_element(String id) throws Throwable {
-        WebElement element = findVisibleAndClickableElementById(id);
-        moveTo(element).click().perform();
-    }
-
     @When("^I click on element with id \"([^\"]*)\"$")
     public void I_click_on_element_with_id(String id) throws Throwable {
+        waitUntil(elementToBeClickable(By.id(id)));
         WebElement element = findVisibleAndClickableElementById(id);
         moveTo(element).click().perform();
     }
 
-    @When("^I click on link \"([^\"]*)\"$")
-    public void I_click_on_link(String id) throws Throwable {
-        WebElement element = findVisibleAndClickableElement(By.cssSelector("a#" + id));
-        moveTo(element).click().perform();
-    }
-
-    @When("^I click on link with text \"([^\"]*)\"$")
-    public void I_click_on_link_with_text(String linkText) throws Throwable {
+    @When("^I click on element with text \"([^\"]*)\"$")
+    public void I_click_on_element_with_text(String linkText) throws Throwable {
         WebElement element = findVisibleAndClickableElement(By.linkText(linkText));
         moveTo(element).click().perform();
     }
 
-    @When("^I click on link with text containing \"([^\"]*)\"$")
-    public void I_click_on_link_with_text_containing(String linkText) throws Throwable {
+    @When("^I click on element with text containing \"([^\"]*)\"$")
+    public void I_click_on_element_with_text_containing(String linkText) throws Throwable {
         WebElement element = findVisibleAndClickableElement(By.partialLinkText(linkText));
         moveTo(element).click().perform();
     }
