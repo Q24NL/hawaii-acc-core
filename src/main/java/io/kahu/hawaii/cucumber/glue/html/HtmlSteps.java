@@ -15,13 +15,18 @@
  */
 package io.kahu.hawaii.cucumber.glue.html;
 
+import static java.lang.String.format;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 import static org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.not;
+import static org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElement;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementLocated;
 import static org.openqa.selenium.support.ui.ExpectedConditions.textToBePresentInElementValue;
@@ -29,20 +34,24 @@ import static org.openqa.selenium.support.ui.ExpectedConditions.titleContains;
 import static org.openqa.selenium.support.ui.ExpectedConditions.titleIs;
 import static org.openqa.selenium.support.ui.ExpectedConditions.visibilityOfElementLocated;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
+import com.assertthat.selenium_shutterbug.core.Shutterbug;
+import com.assertthat.selenium_shutterbug.utils.web.ScrollStrategy;
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -52,7 +61,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.opera.OperaDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
@@ -62,7 +70,8 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.ISelect;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -81,7 +90,11 @@ import cucumber.api.java.Before;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
+import javax.imageio.ImageIO;
+
 public class HtmlSteps {
+
+    private static final String MARIONETTE = "marionette";
 
     private static final String PROXY_HOST_KEY = "test.proxyHost";
     private static final String PROXY_PORT_KEY = "test.proxyPort";
@@ -128,8 +141,13 @@ public class HtmlSteps {
     public static ExpectedCondition<Boolean> currentUrlIs(final String url) {
         return driver -> {
             String currentUrl = driver.getCurrentUrl();
-            return currentUrl == null ? false : currentUrl.equals(url);
+            return currentUrl == null ? false : (removeQueryString(currentUrl).equals(url) || currentUrl.equals(url + '/'));
         };
+    }
+
+    private static String removeQueryString(String url) {
+        //remove all starting from the first ?
+        return url == null ?  url : url.replaceAll("^([^\\?]+)\\?.*$", "$1");
     }
 
     /**
@@ -165,9 +183,18 @@ public class HtmlSteps {
             } else {
                 driver = new OperaDriver();
             }
+        } else if (StringUtils.containsIgnoreCase(browser, "marionette")) {
+            if (remote) {
+                DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+                capabilities.setCapability("marionette", true);
+                driver = createRemoteWebDriverForCapabilities(capabilities);
+            } else {
+                driver = new FirefoxDriver();
+            }
         } else if (StringUtils.containsIgnoreCase(browser, "firefox")) {
             if (remote) {
                 DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+                capabilities.setCapability("marionette", false);
                 driver = createRemoteWebDriverForCapabilities(capabilities);
             } else {
                 driver = new FirefoxDriver();
@@ -227,10 +254,17 @@ public class HtmlSteps {
     }
 
     @After("@web")
-    public void afterScenario(Scenario scenario) {
+    public void afterScenario(Scenario scenario) throws IOException {
         if (scenario.isFailed() && embedScreenshot) {
             try {
-                byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
+                //byte[] screenshot = webDriver.getScreenshotAs(OutputType.BYTES);
+
+                BufferedImage image = Shutterbug.shootPage(webDriver, ScrollStrategy.BOTH_DIRECTIONS).getImage();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "png", baos);
+                baos.flush();
+                byte[] screenshot = baos.toByteArray();
+
                 scenario.embed(screenshot, "image/png");
             } catch (WebDriverException somePlatformsDontSupportScreenshots) {
                 System.err.println(somePlatformsDontSupportScreenshots.getMessage());
@@ -242,15 +276,35 @@ public class HtmlSteps {
 
     @When("^I visit page \"([^\"]*)\"$")
     public void I_visit_page(String path) throws Throwable {
-        webDriver.get(getUrl() + path);
-        waitForLoad();
+        visitPage(path, false);
     }
 
     @When("^I visit page \"([^\"]*)\" and accept cookies$")
     public void I_visit_page_and_accept_cookies(String path) throws Throwable {
+        visitPage(path, true);
+    }
+
+    @When("^I visit page \"([^\"]*)\" expecting to end up at \"([^\"]*)\"$")
+    public void I_visit_page(String path, String expectedPath) throws Throwable {
+        visitPage(path, false, expectedPath);
+    }
+
+    @When("^I visit page \"([^\"]*)\" and accept cookies expecting to end up at \"([^\"]*)\"$")
+    public void I_visit_page_and_accept_cookies(String path, String expectedPath) throws Throwable {
+        visitPage(path, true, expectedPath);
+    }
+
+    private void visitPage(String path, boolean acceptCookies) throws Throwable {
+        visitPage(path, acceptCookies, path);
+    }
+    private void visitPage(String path, boolean acceptCookies, String expectedPath) throws Throwable {
         webDriver.get(getUrl() + path);
-        acceptCookies();
+        if (acceptCookies) {
+            acceptCookies();
+        }
         waitForLoad();
+
+        current_path_should_be(expectedPath);
     }
 
     public void waitForLoad() {
@@ -298,22 +352,22 @@ public class HtmlSteps {
 
     @When("^I fill \"([^\"]*)\" in field \"([^\"]*)\"$")
     public void I_fill_in_field(String value, String id) throws Throwable {
-        findElementById(id).sendKeys(value);
+        findVisibleElementById(id).sendKeys(value);
     }
 
     @When("^I clear field \"([^\"]*)\"$")
     public void I_clear_field(String id) throws Throwable {
-        findElementById(id).clear();
+        findVisibleElementById(id).clear();
     }
 
     @When("^I fill date (.*) in field \"([^\"]*)\"$")
     public void I_fill_date_in_field(@Transform(ChronicConverter.class) Calendar cal, String id) throws Throwable {
-        findElementById(id).sendKeys(formatDate(cal));
+        findVisibleElementById(id).sendKeys(formatDate(cal));
     }
 
     @When("^I fill time (.*) in field \"([^\"]*)\"$")
     public void I_fill_time_in_field(@Transform(ChronicConverter.class) Calendar cal, String id) throws Throwable {
-        findElementById(id).sendKeys(formatTime(cal));
+        findVisibleElementById(id).sendKeys(formatTime(cal));
     }
 
     @When("^I choose radio button \"([^\"]*)\"$")
@@ -360,13 +414,15 @@ public class HtmlSteps {
 
     @When("^I select \"([^\"]*)\" from drop-down list \"([^\"]*)\"$")
     public void I_select_from_drop_down_list(String value, String id) throws Throwable {
-        WebElement element = findElementById(id);
-        List<WebElement> options = element.findElements(By.tagName("option"));
-        for (WebElement option : options) {
-            if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                moveTo(option).click().perform();
-                break;
-            }
+        I_select_from_drop_down_list(value, id, false);
+    }
+
+    public void I_select_from_drop_down_list(String value, String id, boolean byValue) throws Throwable {
+        WebElement element = findVisibleAndClickableElementById(id);
+        if (byValue) {
+            selectItemInDropdownByValue(element, value);
+        } else {
+            selectItemInDropdown(element, value);
         }
     }
 
@@ -380,7 +436,7 @@ public class HtmlSteps {
         for (List<String> row : data.raw()) {
             String id = row.get(0);
             String value = row.get(1);
-            WebElement element = findVisibleElementById(id);
+            WebElement element = findVisibleAndClickableElementById(id);
             String tagName = element.getTagName();
             String type = element.getAttribute("type");
             if ("input".equalsIgnoreCase(tagName)) {
@@ -404,13 +460,7 @@ public class HtmlSteps {
                     }
                 }
             } else if ("select".equalsIgnoreCase(tagName)) {
-                List<WebElement> options = element.findElements(By.tagName("option"));
-                for (WebElement option : options) {
-                    if (option.getText().equals(value) || option.getAttribute("value").equals(value)) {
-                        moveTo(option).click().perform();
-                        break;
-                    }
-                }
+                selectItemInDropdown(element, value);
             } else if ("label".equalsIgnoreCase(tagName)) {
                 moveTo(element).click().perform();
             } else {
@@ -419,51 +469,34 @@ public class HtmlSteps {
         }
     }
 
-    @When("^I click on button \"([^\"]*)\"$")
-    public void I_click_on_button(String id) throws Throwable {
-        WebElement element = findVisibleAndClickableElement(By.id(id));
-        moveTo(element).click().perform();
-    }
-
     @When("^I click on button with text \"([^\"]*)\"$")
     public void I_click_on_button_with_text(String text) throws Throwable {
-        WebElement element = findVisibleElement(By.xpath("//button[text()='" + text + "']"));
+        WebElement element = findVisibleAndClickableElement(By.xpath("//button[text()='" + text + "']"));
         moveTo(element).click().perform();
     }
 
     @When("^I click on button with text containing \"([^\"]*)\"$")
     public void I_click_on_button_with_text_containing(String text) throws Throwable {
-        WebElement element = findVisibleElement(By.xpath("//button[contains(text(), '" + text + "')]"));
-        moveTo(element).click().perform();
-    }
-
-    @When("^I click on element \"([^\"]*)\"$")
-    public void I_click_on_element(String id) throws Throwable {
-        WebElement element = findVisibleElementById(id);
+        WebElement element = findVisibleAndClickableElement(By.xpath("//button[contains(text(), '" + text + "')]"));
         moveTo(element).click().perform();
     }
 
     @When("^I click on element with id \"([^\"]*)\"$")
     public void I_click_on_element_with_id(String id) throws Throwable {
-        WebElement element = findVisibleElementById(id);
+        waitUntil(elementToBeClickable(By.id(id)));
+        WebElement element = findVisibleAndClickableElementById(id);
         moveTo(element).click().perform();
     }
 
-    @When("^I click on link \"([^\"]*)\"$")
-    public void I_click_on_link(String id) throws Throwable {
-        WebElement element = findVisibleElement(By.cssSelector("a#" + id));
+    @When("^I click on element with text \"([^\"]*)\"$")
+    public void I_click_on_element_with_text(String linkText) throws Throwable {
+        WebElement element = findVisibleAndClickableElement(By.linkText(linkText));
         moveTo(element).click().perform();
     }
 
-    @When("^I click on link with text \"([^\"]*)\"$")
-    public void I_click_on_link_with_text(String linkText) throws Throwable {
-        WebElement element = findVisibleElement(By.linkText(linkText));
-        moveTo(element).click().perform();
-    }
-
-    @When("^I click on link with text containing \"([^\"]*)\"$")
-    public void I_click_on_link_with_text_containing(String linkText) throws Throwable {
-        WebElement element = findVisibleElement(By.partialLinkText(linkText));
+    @When("^I click on element with text containing \"([^\"]*)\"$")
+    public void I_click_on_element_with_text_containing(String linkText) throws Throwable {
+        WebElement element = findVisibleAndClickableElement(By.partialLinkText(linkText));
         moveTo(element).click().perform();
     }
 
@@ -482,6 +515,19 @@ public class HtmlSteps {
         }
     }
 
+    @When("^I wait some milliseconds$")
+    public void I_wait_some_milliseconds() throws Throwable {
+        int millis = 1500;
+        Object lock = new Object();
+        synchronized (lock) {
+            try {
+                lock.wait(millis);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+    }
+
     @When("^I select an iframe with name \"([^\"]*)\"$")
     public void I_select_an_iframe_with_name(String text) throws Throwable {
         webDriver.switchTo().frame(text);
@@ -494,7 +540,7 @@ public class HtmlSteps {
 
     @When("^I click on input with value \"([^\"]*)\"$")
     public void I_click_on_input_with_value(String text) throws Throwable {
-        WebElement element = findElement(By.xpath("//input[contains(@value,'" + text + "')]"));
+        WebElement element = findVisibleAndClickableElement(By.xpath("//input[contains(@value,'" + text + "')]"));
         moveTo(element).click().perform();
     }
 
@@ -503,7 +549,17 @@ public class HtmlSteps {
         try {
             waitUntil(currentUrlIs(url));
         } catch (TimeoutException e) {
-            assertThat(webDriver.getCurrentUrl(), is(equalTo(url)));
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(either(equalTo(url)).or(equalTo(url + '/'))));
+        }
+    }
+
+    @Then("^current path should be \"([^\"]*)\"$")
+    public void current_path_should_be(String path) throws Throwable {
+        String url = this.getUrl() + path;
+        try {
+            waitUntil(currentUrlIs(url));
+        } catch (TimeoutException e) {
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(either(equalTo(url)).or(equalTo(url + '/'))));
         }
     }
 
@@ -512,7 +568,7 @@ public class HtmlSteps {
         try {
             waitUntil(not(currentUrlIs(url)));
         } catch (TimeoutException e) {
-            assertThat(webDriver.getCurrentUrl(), is(Matchers.not(equalTo(url))));
+            assertThat(removeQueryString(webDriver.getCurrentUrl()), is(Matchers.not(equalTo(url))));
         }
     }
 
@@ -1011,10 +1067,14 @@ public class HtmlSteps {
         return findElement(by);
     }
 
+    public WebElement findVisibleAndClickableElementById(String id) {
+        return findVisibleAndClickableElement(By.id(id));
+    }
+
     public WebElement findVisibleAndClickableElement(By by) {
         // waitUntil(elementToBeClickable(by));
         waitUntil(visibilityOfElementLocated(by));
-        // waitUntil(elementToBeClickable(by));
+        waitUntil(elementToBeClickable(by));
         return findElement(by);
     }
 
@@ -1035,8 +1095,8 @@ public class HtmlSteps {
      */
     public WebElement findElementById(String id) {
         try {
-            // waitUntil(presenceOfElementLocated(By.id(id)));
-            WebElement element = webDriver.findElement(By.id(id));
+            waitUntil(presenceOfElementLocated(By.id(id)));
+            WebElement element = findElement(By.id(id));
 
             // Scroll to the element, this due to some dirty radiobutton tricks.
             // And force it a bit more to to center
@@ -1126,8 +1186,18 @@ public class HtmlSteps {
      *             If the timeout expires.
      */
     public void waitUntil(Predicate<WebDriver> isTrue) {
-        WebDriverWait wait = new WebDriverWait(webDriver, timeout);
-        wait.until(isTrue);
+        waitUntil(
+            new Function<WebDriver, Boolean>() {
+                @Override
+                public Boolean apply(WebDriver input) {
+                    return isTrue.test(input);
+                }
+                @Override
+                public String toString() {
+                    return isTrue.toString();
+                }
+            }
+        );
     }
 
     /**
@@ -1161,7 +1231,7 @@ public class HtmlSteps {
                 WebDriverWait wait = new WebDriverWait(webDriver, 2); // wait
                 // max 2
                 // seconds
-                wait.until(ExpectedConditions.elementToBeClickable(By.className("cookie-yes")));
+                wait.until(elementToBeClickable(By.className("cookie-yes")));
                 turnOffImplicitWaits();
                 WebElement element = findElement(By.className("cookie-yes"));
                 moveTo(element).click().perform();
@@ -1186,11 +1256,11 @@ public class HtmlSteps {
     }
 
     private void turnOnImplicitWaits() {
-        webDriver.manage().timeouts().implicitlyWait(timeout, TimeUnit.SECONDS);
+        webDriver.manage().timeouts().implicitlyWait(timeout, SECONDS);
     }
 
     private void turnOffImplicitWaits() {
-        webDriver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+        webDriver.manage().timeouts().implicitlyWait(0, SECONDS);
     }
 
     /**
@@ -1209,7 +1279,27 @@ public class HtmlSteps {
     
     public Actions moveTo(WebElement element) {
         Actions actions = new Actions(webDriver);
+        actions.setMarionette(StringUtils.containsIgnoreCase(browser, MARIONETTE));
         return actions.moveToElement(element);
     }
-    
+
+    public void selectItemInDropdownByValue(WebElement element, String value) {
+        ISelect select = new Select(element);
+        try {
+            select.selectByValue(value);
+        } catch (NoSuchElementException e) {
+            fail(format("Select-value '%s' not found for element with id '%d'"));
+        }
+    }
+
+    public void selectItemInDropdown(WebElement element, String value) {
+        ISelect select = new Select(element);
+        try {
+            select.selectByVisibleText(value);
+        } catch (NoSuchElementException e) {
+            //try by values
+            selectItemInDropdownByValue(element, value);
+        }
+    }
+
 }
